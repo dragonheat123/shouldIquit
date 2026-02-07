@@ -1,0 +1,67 @@
+{
+  "singpass_profile": {
+    "name": {
+      "value": "Alex Tan"
+    },
+    "dob": {
+      "value": "1993-08-21"
+    },
+    "annualincome": {
+      "value": "108000"
+    },
+    "dependants": {
+      "value": "1"
+    },
+    "regadd": {
+      "block": {
+        "value": "123"
+      },
+      "street": {
+        "value": "Bishan St 11"
+      },
+      "building": {
+        "value": "Sky Residence"
+      },
+      "postal": {
+        "value": "570123"
+      }
+    }
+  },
+  "linkedin_context": {
+    "profile_url": "https://www.linkedin.com/in/example",
+    "top_skills": [
+      "Product strategy",
+      "Data analysis",
+      "AI prototyping"
+    ],
+    "endorsements_strength": "moderate",
+    "network_reach": "medium",
+    "recent_relevant_posts": 3
+  },
+  "financial_overrides": {
+    "monthly_expenses_usd": 3200,
+    "monthly_income_usd": 9000,
+    "liquid_savings_usd": 25000,
+    "debt_usd": 4000,
+    "expected_side_income_usd": 600,
+    "other_investments_usd": 8000,
+    "expected_investment_monthly_income_usd": 180,
+    "health_insurance_if_quit": true
+  },
+  "family_overrides": {
+    "dependents_count": 1,
+    "partner_income_stable": true,
+    "family_support_level": "high",
+    "major_events_next_12_months": [
+      "Primary school enrollment"
+    ]
+  },
+  "personal_overrides": {
+    "age": 32,
+    "current_role": "Product Manager",
+    "years_experience": 9,
+    "location": "Singapore",
+    "risk_tolerance": "medium",
+    "career_goal_12_months": "Launch a profitable AI service business."
+  }
+}

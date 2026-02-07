@@ -1,0 +1,9 @@
+{
+  "case_id": "replace-with-real-case-id",
+  "did_user_quit": true,
+  "was_successful": true,
+  "months_after_quit": 3,
+  "stress_score_1_to_10": 5,
+  "income_delta_usd": 1200,
+  "notes": "Early consulting contracts stabilized cash flow."
+}

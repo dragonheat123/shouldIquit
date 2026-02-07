@@ -1,0 +1,33 @@
+{
+  "personal_background": {
+    "age": 31,
+    "current_role": "Senior Product Designer",
+    "years_experience": 8,
+    "location": "Austin, TX",
+    "risk_tolerance": "medium",
+    "career_goal_12_months": "Launch and monetize an AI consulting product."
+  },
+  "linkedin_context": {
+    "profile_url": "https://www.linkedin.com/in/example",
+    "top_skills": ["UX strategy", "Prompt engineering", "Product management"],
+    "endorsements_strength": "moderate",
+    "network_reach": "medium",
+    "recent_relevant_posts": 4
+  },
+  "financial_situation": {
+    "monthly_expenses_usd": 4200,
+    "monthly_income_usd": 9500,
+    "liquid_savings_usd": 36000,
+    "debt_usd": 7000,
+    "expected_side_income_usd": 1000,
+    "other_investments_usd": 12000,
+    "expected_investment_monthly_income_usd": 250,
+    "health_insurance_if_quit": true
+  },
+  "family_context": {
+    "dependents_count": 1,
+    "partner_income_stable": true,
+    "family_support_level": "high",
+    "major_events_next_12_months": ["New baby in 6 months"]
+  }
+}
