@@ -1,0 +1,8 @@
+.env
+__pycache__/
+*.pyc
+swarm_memory.json
+.DS_Store
+.venv/
+env/
+*.log

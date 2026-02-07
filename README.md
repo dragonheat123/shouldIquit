@@ -4,6 +4,8 @@ This project now has:
 - AgentField reasoners for due diligence + swarm coordination
 - Feedback loop that reweights specialist agents
 - Flask frontend for a live demo
+- Optional OpenAI opinions (if `OPENAI_API_KEY` set)
+- Optional Tavily news search (if `TAVILY_API_KEY` set)
 
 ## What the swarm does
 
@@ -12,13 +14,10 @@ Specialist agents:
 - `career_market_agent`
 - `family_stability_agent`
 - `linkedin_positioning_agent`
-
-Coordinator output:
-- weighted aggregate decision
-- quit window
-- rationale and red flags
-- action plan
-- similar historical cases
+- `peer_opinion_agent`
+- `job_search_agent`
+- `news_agent`
+- `knowledge_synth_agent`
 
 Memory:
 - stored in `/Users/lorky/Documents/New project 3/swarm_memory.json`
@@ -32,6 +31,11 @@ source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 ```
+
+LLM and news (optional) in `.env`:
+- `OPENAI_API_KEY=...`
+- `OPENAI_MODEL=gpt-4o-mini`
+- `TAVILY_API_KEY=...`
 
 ## Run AgentField backend
 
@@ -77,13 +81,13 @@ python frontend.py
 ```
 
 Open:
-- [http://127.0.0.1:5050](http://127.0.0.1:5050)
+- http://127.0.0.1:5050
 
-Frontend tabs:
-1. `Your Details`: connect your own LinkedIn + Singpass, then run own-agent opinion process.
-2. `Simulated Opinions`: paste other people's LinkedIn URLs (boss/coworker) and simulate their opinion.
-3. `Jobs Agent`: run a job-search agent and market opinion process.
-4. `Agentic Swarm`: orchestrate self + peers + jobs into one final swarm opinion with trace.
+Frontend flow:
+1. `Your Details`: connect LinkedIn + Singpass, run own-agent opinion.
+2. `Simulated Personas`: paste LinkedIn URLs for boss/coworker opinions.
+3. `Jobs + News Agents`: job search and news horizon (Tavily) with opinion.
+4. `Agentic Swarm + Memory`: merges self + peers + jobs + news; memory in `swarm_memory.json`.
 
 Manual side-investment inputs:
 - `other_investments_usd`

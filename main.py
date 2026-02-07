@@ -569,11 +569,27 @@ def _mock_linkedin_profile(profile_url: Optional[str]) -> Dict[str, Any]:
         if match:
             slug = match.group(1).replace("-", " ")
     display_name = " ".join(word.capitalize() for word in slug.split()) or "Candidate"
-    jobs = [
-        {"title": "Senior Product Manager", "company": "Fintech Co", "years": 3},
-        {"title": "Product Manager", "company": "SaaS Startup", "years": 3},
-        {"title": "Business Analyst", "company": "Enterprise Tech", "years": 2},
+
+    # Slightly varied mock jobs to feel more realistic
+    base_jobs = [
+        ("Senior Product Manager", "Atlas Fintech", 3),
+        ("Product Manager", "Nimbus SaaS", 3),
+        ("Business Analyst", "Vertex Systems", 2),
     ]
+    if any(token in slug.lower() for token in ["data", "analytics", "ds"]):
+        base_jobs = [
+            ("Senior Data Scientist", "SignalAI", 3),
+            ("Data Scientist", "CloudMetrics", 2),
+            ("Data Analyst", "BrightInsight", 2),
+        ]
+    if any(token in slug.lower() for token in ["eng", "engineer", "dev"]):
+        base_jobs = [
+            ("Senior Software Engineer", "Gridforge", 3),
+            ("Software Engineer", "Orbit Labs", 3),
+            ("Junior Engineer", "Bluewave Tech", 2),
+        ]
+
+    jobs = [{"title": t, "company": c, "years": y} for t, c, y in base_jobs]
     education = [
         {"school": "National University of Singapore", "degree": "B.Eng Computer Engineering"},
         {"school": "SMU", "degree": "Data Analytics Certificate"},

@@ -16,17 +16,10 @@
       <section class="hero reveal">
         <p class="eyebrow">AgentField Hackathon Demo</p>
         <h1>Swarm Career Exit Intelligence</h1>
-        <p>Own profile + peer simulation + jobs intelligence + orchestrated swarm process.</p>
+        <p>Connect LinkedIn + Singpass, ask simulated peers, jobs/news agents, and a swarm with memory.</p>
       </section>
 
-      <section class="tabs reveal">
-        <button class="tab-btn active" data-tab="tab-own">Your Details</button>
-        <button class="tab-btn" data-tab="tab-sim">Simulated Opinions</button>
-        <button class="tab-btn" data-tab="tab-jobs">Jobs Agent</button>
-        <button class="tab-btn" data-tab="tab-swarm">Agentic Swarm</button>
-      </section>
-
-      <section id="tab-own" class="panel tab-panel active reveal">
+      <section class="panel reveal">
         <h2>Your Details</h2>
         <form id="decision-form">
           <div class="grid">
@@ -122,34 +115,56 @@
         <div id="own-result" class="connector-result hidden"></div>
       </section>
 
-      <section id="tab-sim" class="panel tab-panel reveal">
-        <h2>Simulated Opinions</h2>
-        <p>Paste LinkedIn URLs of boss/coworkers/advisors to simulate their opinion in backend agents.</p>
+      <section class="panel reveal">
+        <h2>Simulated Personas</h2>
+        <p>Paste LinkedIn URLs of boss/coworkers/advisors to simulate their opinion.</p>
         <div class="grid">
           <label class="full">LinkedIn URLs (comma/newline)
-            <textarea id="external_linkedin_urls" rows="4" placeholder="https://linkedin.com/in/boss-one\nhttps://linkedin.com/in/coworker-two"></textarea>
+            <textarea id="external_linkedin_urls" rows="4" placeholder="https://linkedin.com/in/boss-one
+https://linkedin.com/in/coworker-two"></textarea>
           </label>
         </div>
         <button id="run-sim-btn" type="button">Run Simulated Opinions</button>
         <div id="sim-result" class="connector-result hidden"></div>
       </section>
 
-      <section id="tab-jobs" class="panel tab-panel reveal">
-        <h2>Jobs Agent</h2>
-        <p>Agent searches available jobs and simulates market-backed opinion.</p>
+      <section class="panel reveal">
+        <h2>Jobs + News Agents</h2>
+        <p>Search available jobs and monitor news horizon for your field.</p>
         <div class="grid">
           <label>Target role <input id="target_role" value="AI Product Consultant" /></label>
           <label>Target location <input id="target_location" value="Singapore" /></label>
+          <label>News topic <input id="news_topic" value="AI product" /></label>
+          <label>Horizon (months) <input id="horizon_months" type="number" value="6" /></label>
         </div>
-        <button id="run-jobs-btn" type="button">Run Jobs Agent</button>
+        <div class="connect-row">
+          <button id="run-jobs-btn" type="button">Run Jobs Agent</button>
+          <button id="run-news-btn" type="button" class="btn-secondary">Run News Agent</button>
+        </div>
         <div id="jobs-result" class="connector-result hidden"></div>
+        <div id="news-result" class="connector-result hidden"></div>
       </section>
 
-      <section id="tab-swarm" class="panel tab-panel reveal">
-        <h2>Agentic Swarm</h2>
-        <p>Connects multiple AgentField-style agents and shows orchestration trace.</p>
+      <section class="panel reveal">
+        <h2>Agentic Swarm + Memory</h2>
+        <p>Combines self, peers, jobs, and news agents. Memory is stored in swarm_memory.json and updated from feedback.</p>
         <button id="run-swarm-btn" type="button">Run Full Swarm of Knowledge</button>
         <div id="swarm-result" class="connector-result hidden"></div>
+      </section>
+
+      <section class="panel reveal">
+        <h2>Reasoners & Skills Used</h2>
+        <ul class="reasoners">
+          <li>finance_risk_agent</li>
+          <li>career_market_agent</li>
+          <li>family_stability_agent</li>
+          <li>linkedin_positioning_agent</li>
+          <li>peer_opinion_agent</li>
+          <li>job_search_agent</li>
+          <li>news_agent</li>
+          <li>knowledge_synth_agent</li>
+          <li>memory: swarm_memory.json</li>
+        </ul>
       </section>
     </main>
     <script src="/static/app.js"></script>

@@ -1,6 +1,4 @@
 const decisionForm = document.getElementById("decision-form");
-const tabButtons = document.querySelectorAll(".tab-btn");
-const tabPanels = document.querySelectorAll(".tab-panel");
 
 const linkedinBtn = document.getElementById("connect-linkedin-btn");
 const singpassBtn = document.getElementById("connect-singpass-btn");
@@ -12,10 +10,12 @@ const singpassResult = document.getElementById("singpass-result");
 const ownResult = document.getElementById("own-result");
 const simResult = document.getElementById("sim-result");
 const jobsResult = document.getElementById("jobs-result");
+const newsResult = document.getElementById("news-result");
 const swarmResult = document.getElementById("swarm-result");
 
 const runSimBtn = document.getElementById("run-sim-btn");
 const runJobsBtn = document.getElementById("run-jobs-btn");
+const runNewsBtn = document.getElementById("run-news-btn");
 const runSwarmBtn = document.getElementById("run-swarm-btn");
 
 function formToObject(form) {
@@ -44,22 +44,11 @@ function list(items) {
   return `<ul>${items.map((i) => `<li>${i}</li>`).join("")}</ul>`;
 }
 
-function switchTab(tabId) {
-  tabButtons.forEach((btn) => btn.classList.toggle("active", btn.dataset.tab === tabId));
-  tabPanels.forEach((panel) => panel.classList.toggle("active", panel.id === tabId));
-}
-
-tabButtons.forEach((btn) => {
-  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
-});
-
 linkedinBtn.addEventListener("click", async () => {
   linkedinLoading.classList.remove("hidden");
   linkedinBtn.disabled = true;
   try {
-    const payload = {
-      profile_url: decisionForm.querySelector('[name="profile_url"]').value,
-    };
+    const payload = { profile_url: decisionForm.querySelector('[name="profile_url"]').value };
     const response = await fetch("/api/connect/linkedin", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -214,12 +203,40 @@ runJobsBtn.addEventListener("click", async () => {
   );
 });
 
+runNewsBtn.addEventListener("click", async () => {
+  const payload = {
+    news_topic: document.getElementById("news_topic").value,
+    target_location: document.getElementById("target_location").value,
+    horizon_months: document.getElementById("horizon_months").value,
+  };
+  const response = await fetch("/api/news/process", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const result = await response.json();
+  const articles = result.articles?.length
+    ? `<ul>${result.articles
+        .map((a) => `<li>${a.title}${a.url ? ` — <a href="${a.url}" target="_blank">link</a>` : ""}<br/>${a.snippet}</li>`)
+        .join("")}</ul>`
+    : "No articles found.";
+  showBlock(
+    newsResult,
+    `<h4>News Agent</h4>
+     <p><strong>Outlook:</strong> ${result.outlook}</p>
+     ${articles}
+     <p><strong>Process:</strong></p>${traceList(result.trace)}`
+  );
+});
+
 runSwarmBtn.addEventListener("click", async () => {
   const payload = {
     ...formToObject(decisionForm),
     external_linkedin_urls: document.getElementById("external_linkedin_urls").value,
     target_role: document.getElementById("target_role").value,
     target_location: document.getElementById("target_location").value,
+    news_topic: document.getElementById("news_topic").value,
+    horizon_months: document.getElementById("horizon_months").value,
   };
   const response = await fetch("/api/swarm/process", {
     method: "POST",
@@ -239,8 +256,7 @@ runSwarmBtn.addEventListener("click", async () => {
      <p><strong>Self score:</strong> ${result.self_decision.aggregate_score_0_to_100}/100</p>
      <p><strong>Peer consensus:</strong> ${result.peer_simulation.consensus}</p>
      <p><strong>Job market score:</strong> ${result.job_market.market_signal_score_0_to_100}/100</p>
+     <p><strong>News outlook:</strong> ${result.news.outlook}</p>
      <p><strong>Swarm process:</strong></p>${traceList(result.trace)}`
   );
-
-  switchTab("tab-swarm");
 });

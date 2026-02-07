@@ -1,8 +1,16 @@
+import os
 import time
 from typing import Any, Dict, List
 
+import requests
+from dotenv import load_dotenv
 from flask import Flask, jsonify, render_template, request
 from pydantic import ValidationError
+
+try:
+    from openai import OpenAI
+except Exception:  # pragma: no cover
+    OpenAI = None
 
 from main import (
     DueDiligenceInput,
@@ -15,10 +23,52 @@ from main import (
 )
 
 web = Flask(__name__)
+load_dotenv()
 
 
 def _to_bool(value: str) -> bool:
     return str(value).strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _llm_ready() -> bool:
+    return bool(os.getenv("OPENAI_API_KEY") and OpenAI)
+
+
+def _llm_opinion(system: str, user: str, fallback: str) -> str:
+    if not _llm_ready():
+        return fallback
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        model = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+        response = client.chat.completions.create(
+            model=model,
+            temperature=0.3,
+            messages=[
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+        )
+        return (response.choices[0].message.content or fallback).strip()
+    except Exception:
+        return fallback
+
+
+def _tavily_search(query: str) -> List[Dict[str, str]]:
+    api_key = os.getenv("TAVILY_API_KEY")
+    if not api_key:
+        return []
+    try:
+        res = requests.post(
+            "https://api.tavily.com/search",
+            json={"api_key": api_key, "query": query, "max_results": 4},
+            timeout=10,
+        )
+        if res.status_code != 200:
+            return []
+        data = res.json()
+        return data.get("results", []) if isinstance(data, dict) else []
+    except Exception:
+        return []
 
 
 def _form_to_due_diligence(form: dict) -> DueDiligenceInput:
@@ -101,7 +151,11 @@ def _simulate_external_opinions(data: DueDiligenceInput, urls: List[str]) -> Dic
                 "advisor_name": profile["name"],
                 "profile_url": url,
                 "stance": stance,
-                "message": msg,
+                "message": _llm_opinion(
+                    "You simulate a concise advisor opinion about whether someone should quit their job.",
+                    f"Profile summary: {profile}. Candidate runway months: {runway:.1f}. Skill readiness: {readiness}. Give one short opinion.",
+                    msg,
+                ),
                 "top_skills": reason.inferred_skills[:4],
                 "market_readiness_score_0_to_100": readiness,
             }
@@ -150,16 +204,53 @@ def _jobs_agent(target_role: str, location: str) -> Dict[str, Any]:
     if "engineer" in role:
         listings[0]["title"] = "AI Solutions Engineer (Contract)"
     market_score = 76 if len(listings) >= 3 else 55
-    opinion = (
+    fallback_opinion = (
         "Job market signal is healthy; keeping an interview pipeline can de-risk quitting."
         if market_score >= 70
         else "Job market signal is thin; prioritize cash runway before quitting."
+    )
+    opinion = _llm_opinion(
+        "You are a pragmatic jobs-market advisor.",
+        f"Role: {target_role}, location: {location}, market score: {market_score}, jobs: {listings}. Give one short opinion.",
+        fallback_opinion,
     )
     trace = [
         {"agent": "job_search_agent", "step": f"Searched opportunities for '{target_role}' in {city}."},
         {"agent": "market_opinion_agent", "step": f"Generated market signal score {market_score}/100."},
     ]
     return {"jobs": listings, "market_signal_score_0_to_100": market_score, "opinion": opinion, "trace": trace}
+
+
+def _news_agent(topic: str, horizon_months: int, location: str) -> Dict[str, Any]:
+    query = f"{topic} jobs outlook in {location} next {horizon_months} months"
+    results = _tavily_search(query)
+    articles = []
+    for item in results[:4]:
+        articles.append(
+            {
+                "title": item.get("title", "Untitled"),
+                "url": item.get("url", ""),
+                "snippet": item.get("content", "")[:220],
+            }
+        )
+    fallback = [
+        {
+            "title": f"{topic} hiring signals steady in {location}",
+            "url": "",
+            "snippet": "No live data available; using fallback sentiment: neutral-to-positive.",
+        }
+    ]
+    articles = articles or fallback
+    opinion = _llm_opinion(
+        "You are a concise news summarizer for job landscape.",
+        f"Articles: {articles}. Produce one-line outlook for {topic} in {location} for {horizon_months} months.",
+        f"Outlook for {topic} in {location}: stable with moderate demand.",
+    )
+    trace = [
+        {"agent": "news_agent", "step": f"Searched horizon {horizon_months}m for '{topic}' in {location}."},
+        {"agent": "news_opinion_agent", "step": "Synthesized outlook from articles."},
+    ]
+    return {"articles": articles, "outlook": opinion, "trace": trace}
 
 
 @web.get("/")
@@ -218,10 +309,19 @@ def self_process():
     try:
         data = DueDiligenceInput.model_validate(request.get_json()) if request.is_json else _form_to_due_diligence(request.form)
         decision = _build_swarm_decision(data)
-        self_opinion = (
+        fallback_self_opinion = (
             "Your profile supports a staged quit after checklist gates are met."
             if decision.aggregate_score_0_to_100 >= 60
             else "Your profile needs de-risking before quitting."
+        )
+        self_opinion = _llm_opinion(
+            "You are a conservative career transition advisor.",
+            (
+                f"Candidate aggregate score: {decision.aggregate_score_0_to_100}, "
+                f"recommendation: {decision.recommendation}, rationale: {decision.rationale}. "
+                "Give a short first-person self-opinion."
+            ),
+            fallback_self_opinion,
         )
         trace = [
             {"agent": "self_profile_agent", "step": "Validated your profile, family, and financial inputs."},
@@ -256,6 +356,15 @@ def jobs_process():
     return jsonify(_jobs_agent(target_role, location))
 
 
+@web.post("/api/news/process")
+def news_process():
+    payload = request.get_json(force=True, silent=False) if request.is_json else request.form
+    topic = payload.get("news_topic", "AI product")
+    horizon = int(payload.get("horizon_months", 6))
+    location = payload.get("target_location", "Singapore")
+    return jsonify(_news_agent(topic, horizon, location))
+
+
 @web.post("/api/swarm/process")
 def swarm_process():
     try:
@@ -264,29 +373,44 @@ def swarm_process():
         urls = _parse_external_urls(payload)
         target_role = payload.get("target_role", data.personal_background.current_role)
         target_location = payload.get("target_location", data.personal_background.location)
+        news_topic = payload.get("news_topic", target_role)
+        horizon = int(payload.get("horizon_months", 6))
 
         own = _build_swarm_decision(data)
         peers = _simulate_external_opinions(data, urls)
         jobs = _jobs_agent(target_role, target_location)
+        news = _news_agent(news_topic, horizon, target_location)
 
         trace = [
             {"agent": "orchestrator_agent", "step": "Dispatched your profile to self-opinion and swarm agents."},
             {"agent": "peer_panel_agent", "step": f"Gathered {len(peers['opinions'])} simulated peer opinions."},
-            {"agent": "market_intel_agent", "step": f"Generated job market signal {jobs['market_signal_score_0_to_100']}/100."},
-            {"agent": "knowledge_synth_agent", "step": "Merged self, peers, and market into final swarm perspective."},
+            {"agent": "market_intel_agent", "step": f"Job market signal {jobs['market_signal_score_0_to_100']}/100."},
+            {"agent": "news_agent", "step": f"News horizon {horizon}m on '{news_topic}'."},
+            {"agent": "knowledge_synth_agent", "step": "Merged self, peers, market, and news into final swarm perspective."},
         ]
 
-        final = own.recommendation
+        fallback_final = own.recommendation
         if peers["opinions"] and "conservative" in peers["consensus"].lower():
-            final = f"{final} Peers are conservative, so use stricter milestones."
+            fallback_final = f"{fallback_final} Peers are conservative, so use stricter milestones."
         if jobs["market_signal_score_0_to_100"] >= 75:
-            final = f"{final} Strong job-market fallback lowers downside."
+            fallback_final = f"{fallback_final} Strong job-market fallback lowers downside."
+        final = _llm_opinion(
+            "You are a swarm coordinator agent. Merge multiple agent signals into one concise final opinion.",
+            (
+                f"Own decision: {own.recommendation}; own score: {own.aggregate_score_0_to_100}. "
+                f"Peer consensus: {peers['consensus']}. Jobs opinion: {jobs['opinion']}. "
+                f"News outlook: {news['outlook']}. "
+                "Return one concise final opinion."
+            ),
+            fallback_final,
+        )
 
         return jsonify(
             {
                 "self_decision": own.model_dump(),
                 "peer_simulation": peers,
                 "job_market": jobs,
+                "news": news,
                 "swarm_final_opinion": final,
                 "trace": trace,
             }
