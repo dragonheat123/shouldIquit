@@ -18,6 +18,88 @@ const runJobsBtn = document.getElementById("run-jobs-btn");
 const runNewsBtn = document.getElementById("run-news-btn");
 const runSwarmBtn = document.getElementById("run-swarm-btn");
 
+const profileUrlInput = document.getElementById("profile_url_input");
+const nameSuggestionBubble = document.getElementById("name-suggestion-bubble");
+
+// Extract LinkedIn username from URL and show in bubble
+function updateNameSuggestion() {
+  const url = profileUrlInput.value.trim();
+  const match = url.match(/linkedin\.com\/in\/([^\/\?]+)/i);
+  
+  if (match && match[1]) {
+    const username = match[1];
+    nameSuggestionBubble.textContent = username;
+    nameSuggestionBubble.classList.remove("hidden");
+  } else {
+    nameSuggestionBubble.classList.add("hidden");
+  }
+}
+
+// Update suggestion bubble on input
+profileUrlInput.addEventListener("input", updateNameSuggestion);
+
+// Initialize on page load
+updateNameSuggestion();
+
+// Handle career goal suggestion clicks
+const careerGoalInput = document.getElementById("career_goal_input");
+const careerSuggestionChips = document.querySelectorAll(".suggestion-chip:not(.linkedin-url-chip)");
+
+careerSuggestionChips.forEach(chip => {
+  chip.addEventListener("click", (e) => {
+    const goal = e.target.getAttribute("data-goal");
+    if (careerGoalInput && goal) {
+      careerGoalInput.value = goal;
+      careerGoalInput.focus();
+      
+      // Add visual feedback
+      e.target.style.background = "rgba(0, 211, 167, 0.3)";
+      setTimeout(() => {
+        e.target.style.background = "";
+      }, 300);
+    }
+  });
+});
+
+// Handle LinkedIn URL suggestion clicks
+const linkedinUrlTextarea = document.getElementById("external_linkedin_urls");
+const linkedinUrlChips = document.querySelectorAll(".linkedin-url-chip");
+
+linkedinUrlChips.forEach(chip => {
+  chip.addEventListener("click", (e) => {
+    const url = e.target.getAttribute("data-url");
+    if (linkedinUrlTextarea && url) {
+      // Get current value
+      const currentValue = linkedinUrlTextarea.value.trim();
+      
+      // Check if URL already exists
+      if (currentValue.includes(url)) {
+        // URL already added, flash feedback
+        e.target.style.background = "rgba(255, 179, 71, 0.3)";
+        setTimeout(() => {
+          e.target.style.background = "";
+        }, 300);
+        return;
+      }
+      
+      // Add URL to textarea (append with newline if not empty)
+      if (currentValue) {
+        linkedinUrlTextarea.value = currentValue + "\n" + url;
+      } else {
+        linkedinUrlTextarea.value = url;
+      }
+      
+      linkedinUrlTextarea.focus();
+      
+      // Add visual feedback
+      e.target.style.background = "rgba(138, 244, 220, 0.3)";
+      setTimeout(() => {
+        e.target.style.background = "";
+      }, 300);
+    }
+  });
+});
+
 function formToObject(form) {
   const data = new FormData(form);
   return Object.fromEntries(data.entries());
@@ -57,9 +139,78 @@ linkedinBtn.addEventListener("click", async () => {
     const result = await response.json();
     if (!response.ok) throw new Error(JSON.stringify(result));
 
-    setField("top_skills", result.autofill.top_skills);
-    setField("years_experience", result.autofill.years_experience);
-    setField("current_role", result.autofill.current_role);
+    // Populate "Your Details" fields from LinkedIn data (except career goal)
+    if (result.profile.name) {
+      setField("name", result.profile.name);
+    }
+    
+    // Populate from autofill
+    if (result.autofill) {
+      setField("current_role", result.autofill.current_role);
+      setField("years_experience", result.autofill.years_experience);
+      setField("top_skills", result.autofill.top_skills);
+    }
+    
+    // Populate location if available (default to Singapore if not)
+    if (result.profile.location) {
+      setField("location", result.profile.location);
+    } else {
+      setField("location", "Singapore");
+    }
+    
+    // Populate age if available (default to 31 if not)
+    if (result.profile.age) {
+      setField("age", result.profile.age);
+    } else {
+      setField("age", "31");
+    }
+    
+    // Set default risk tolerance to medium if not already set
+    const riskField = decisionForm.querySelector('[name="risk_tolerance"]');
+    if (riskField && !riskField.value) {
+      setField("risk_tolerance", "medium");
+    }
+    
+    // Set default LinkedIn details
+    const endorsementsField = decisionForm.querySelector('[name="endorsements_strength"]');
+    if (endorsementsField && !endorsementsField.value) {
+      setField("endorsements_strength", "moderate");
+    }
+    
+    const networkField = decisionForm.querySelector('[name="network_reach"]');
+    if (networkField && !networkField.value) {
+      setField("network_reach", "medium");
+    }
+    
+    const postsField = decisionForm.querySelector('[name="recent_relevant_posts"]');
+    if (postsField && !postsField.value) {
+      setField("recent_relevant_posts", "4");
+    }
+    
+    // Auto-populate Jobs + News section based on current role and location
+    const targetRoleField = document.getElementById("target_role");
+    const targetLocationField = document.getElementById("target_location");
+    const newsTopicField = document.getElementById("news_topic");
+    const horizonField = document.getElementById("horizon_months");
+    
+    if (targetRoleField && !targetRoleField.value && result.autofill.current_role) {
+      targetRoleField.value = result.autofill.current_role;
+    }
+    
+    if (targetLocationField && !targetLocationField.value && result.profile.location) {
+      targetLocationField.value = result.profile.location;
+    } else if (targetLocationField && !targetLocationField.value) {
+      targetLocationField.value = "Singapore";
+    }
+    
+    if (newsTopicField && !newsTopicField.value && result.autofill.current_role) {
+      // Extract key terms from current role for news topic
+      newsTopicField.value = result.autofill.current_role.split(" ").slice(0, 2).join(" ");
+    }
+    
+    if (horizonField && !horizonField.value) {
+      horizonField.value = "6";
+    }
 
     const jobs = (result.profile.jobs || [])
       .map((j) => `<li>${j.title} at ${j.company} (${j.years}y)</li>`)
@@ -70,7 +221,7 @@ linkedinBtn.addEventListener("click", async () => {
 
     showBlock(
       linkedinResult,
-      `<h4>LinkedIn Pull</h4>
+      `<h4>✅ LinkedIn Profile Connected</h4>
        <p><strong>${result.profile.name}</strong></p>
        <p><strong>Jobs:</strong></p><ul>${jobs}</ul>
        <p><strong>Education:</strong></p><ul>${education}</ul>
@@ -78,8 +229,24 @@ linkedinBtn.addEventListener("click", async () => {
        <p><strong>Inferred Skills:</strong> ${result.skill_reasoning.inferred_skills.join(", ")}</p>
        <p><strong>Process:</strong></p>${traceList(result.trace)}`
     );
+    
+    // Show career goal suggestions after successful connection
+    const careerSuggestions = document.getElementById('career-suggestions');
+    if (careerSuggestions) {
+      careerSuggestions.classList.remove('hidden');
+      // Smooth animation
+      setTimeout(() => {
+        careerSuggestions.style.opacity = '1';
+      }, 100);
+    }
+    
+    // Scroll to "Your Details" section smoothly
+    const yourDetailsSection = document.querySelector('h3');
+    if (yourDetailsSection) {
+      yourDetailsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } catch (error) {
-    showBlock(linkedinResult, `<p>LinkedIn connection failed: ${error.message}</p>`);
+    showBlock(linkedinResult, `<p>❌ LinkedIn connection failed: ${error.message}</p>`);
   } finally {
     linkedinLoading.classList.add("hidden");
     linkedinBtn.disabled = false;
@@ -90,25 +257,56 @@ singpassBtn.addEventListener("click", async () => {
   singpassLoading.classList.remove("hidden");
   singpassBtn.disabled = true;
   try {
+    // Collect profile data from the form
+    const profileData = {
+      name: decisionForm.querySelector('[name="name"]')?.value || "Professional",
+      current_role: decisionForm.querySelector('[name="current_role"]')?.value || "Product Manager",
+      years_experience: parseFloat(decisionForm.querySelector('[name="years_experience"]')?.value) || 8,
+      location: decisionForm.querySelector('[name="location"]')?.value || "Singapore",
+      age: parseInt(decisionForm.querySelector('[name="age"]')?.value) || 31,
+    };
+    
     const response = await fetch("/api/connect/singpass", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({}),
+      body: JSON.stringify(profileData),
     });
     const result = await response.json();
     if (!response.ok) throw new Error(JSON.stringify(result));
 
+    // Populate fields from autofill or set sensible defaults
     Object.entries(result.autofill || {}).forEach(([name, value]) => setField(name, value));
+    
+    // Set defaults for family fields if not already set
+    const dependentsField = decisionForm.querySelector('[name="dependents_count"]');
+    if (dependentsField && !dependentsField.value) {
+      setField("dependents_count", "1");
+    }
+    
+    const partnerIncomeField = decisionForm.querySelector('[name="partner_income_stable"]');
+    if (partnerIncomeField && !partnerIncomeField.value) {
+      setField("partner_income_stable", "true");
+    }
+    
+    const familySupportField = decisionForm.querySelector('[name="family_support_level"]');
+    if (familySupportField && !familySupportField.value) {
+      setField("family_support_level", "medium");
+    }
+    
+    const insuranceField = decisionForm.querySelector('[name="health_insurance_if_quit"]');
+    if (insuranceField && !insuranceField.value) {
+      setField("health_insurance_if_quit", "true");
+    }
 
     showBlock(
       singpassResult,
-      `<h4>Singpass Pull</h4>
+      `<h4>✅ Singpass Connected</h4>
        <p>${(result.notes || []).join(" ")}</p>
        <p><strong>Fill manually:</strong> ${(result.required_user_inputs || []).join(", ")}</p>
        <p><strong>Process:</strong></p>${traceList(result.trace)}`
     );
   } catch (error) {
-    showBlock(singpassResult, `<p>Singpass connection failed: ${error.message}</p>`);
+    showBlock(singpassResult, `<p>❌ Singpass connection failed: ${error.message}</p>`);
   } finally {
     singpassLoading.classList.add("hidden");
     singpassBtn.disabled = false;

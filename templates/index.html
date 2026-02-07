@@ -20,69 +20,98 @@
       </section>
 
       <section class="panel reveal">
-        <h2>Your Details</h2>
+        <h2>LinkedIn Profile</h2>
+        <p>Connect your LinkedIn profile to auto-populate your details below.</p>
         <form id="decision-form">
+          <div class="linkedin-input-row">
+            <label style="flex: 1;">Profile URL 
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <input name="profile_url" id="profile_url_input" placeholder="https://linkedin.com/in/you" value="https://www.linkedin.com/in/chohyunbin/" style="flex: 1;" />
+                <span id="name-suggestion-bubble" class="name-bubble hidden"></span>
+              </div>
+            </label>
+            <button type="button" id="connect-linkedin-btn" class="btn-secondary" style="margin-left: 10px; align-self: flex-end;">Connect LinkedIn</button>
+            <span id="linkedin-loading" class="loading-text hidden" style="align-self: flex-end; margin-left: 10px;">Pulling jobs and education</span>
+          </div>
+          <div id="linkedin-result" class="connector-result hidden"></div>
+
+          <h3 style="margin-top: 1.5rem;">Your Details</h3>
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem;">👆 Click "Connect LinkedIn" above to auto-populate these fields. Then add your career goal manually.</p>
           <div class="grid">
-            <label>Age <input name="age" type="number" value="31" required /></label>
-            <label>Current role <input name="current_role" value="Product Manager" required /></label>
-            <label>Years exp <input name="years_experience" type="number" step="0.5" value="8" required /></label>
-            <label>Location <input name="location" value="Singapore" required /></label>
+            <label>Name <input name="name" placeholder="Will auto-populate from LinkedIn" required /></label>
+            <label>Age <input name="age" type="number" placeholder="e.g. 31" required /></label>
+            <label>Current role <input name="current_role" placeholder="Will auto-populate from LinkedIn" required /></label>
+            <label>Years exp <input name="years_experience" type="number" step="0.5" placeholder="e.g. 8" required /></label>
+            <label>Location <input name="location" placeholder="e.g. Singapore" required /></label>
             <label>
               Risk tolerance
               <select name="risk_tolerance">
+                <option value="" disabled selected>Select...</option>
                 <option value="low">low</option>
-                <option value="medium" selected>medium</option>
+                <option value="medium">medium</option>
                 <option value="high">high</option>
               </select>
             </label>
-            <label>Career goal (12m) <input name="career_goal_12_months" value="Launch profitable AI consulting offers" required /></label>
-          </div>
-
-          <h3>LinkedIn</h3>
-          <div class="connect-row">
-            <button type="button" id="connect-linkedin-btn" class="btn-secondary">Connect LinkedIn</button>
-            <span id="linkedin-loading" class="loading-text hidden">Pulling jobs and education</span>
           </div>
           <div class="grid">
-            <label>Profile URL <input name="profile_url" placeholder="https://linkedin.com/in/you" /></label>
-            <label>Top skills (comma) <input name="top_skills" value="Product strategy, AI prototyping, GTM" /></label>
+            <label class="full highlight-field">
+              Career goal (12m) 
+              <input name="career_goal_12_months" id="career_goal_input" placeholder="Enter your 12-month career goal (not auto-filled)" required />
+              <div class="career-suggestions hidden" id="career-suggestions">
+                <span class="suggestion-label">💡 Suggestions:</span>
+                <button type="button" class="suggestion-chip" data-goal="Launch profitable AI consulting business">Launch profitable AI consulting business</button>
+                <button type="button" class="suggestion-chip" data-goal="Transition to full-time freelance work">Transition to full-time freelance work</button>
+                <button type="button" class="suggestion-chip" data-goal="Build and monetize a SaaS product">Build and monetize a SaaS product</button>
+                <button type="button" class="suggestion-chip" data-goal="Start a tech agency with recurring clients">Start a tech agency with recurring clients</button>
+                <button type="button" class="suggestion-chip" data-goal="Become an independent consultant">Become an independent consultant</button>
+                <button type="button" class="suggestion-chip" data-goal="Launch an online course or coaching program">Launch an online course or coaching program</button>
+              </div>
+            </label>
+          </div>
+
+          <h3>LinkedIn Details</h3>
+          <div class="grid">
+            <label>Top skills (comma) <input name="top_skills" placeholder="Will auto-populate from LinkedIn" /></label>
             <label>
               Endorsements
               <select name="endorsements_strength">
+                <option value="" disabled selected>Select...</option>
                 <option value="weak">weak</option>
-                <option value="moderate" selected>moderate</option>
+                <option value="moderate">moderate</option>
                 <option value="strong">strong</option>
               </select>
             </label>
             <label>
               Network reach
               <select name="network_reach">
+                <option value="" disabled selected>Select...</option>
                 <option value="small">small</option>
-                <option value="medium" selected>medium</option>
+                <option value="medium">medium</option>
                 <option value="large">large</option>
               </select>
             </label>
-            <label>Recent relevant posts <input name="recent_relevant_posts" type="number" value="4" /></label>
+            <label>Recent relevant posts <input name="recent_relevant_posts" type="number" placeholder="e.g. 4" /></label>
           </div>
-          <div id="linkedin-result" class="connector-result hidden"></div>
 
           <h3>Singpass</h3>
+          <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 1rem;">👇 Click "Connect Singpass" to auto-populate financial data, or enter manually.</p>
           <div class="connect-row">
             <button type="button" id="connect-singpass-btn" class="btn-secondary">Connect Singpass</button>
             <span id="singpass-loading" class="loading-text hidden">Pulling financial profile</span>
           </div>
           <div class="grid">
-            <label>Monthly expenses (USD) <input name="monthly_expenses_usd" type="number" value="3500" required /></label>
-            <label>Monthly income (USD) <input name="monthly_income_usd" type="number" value="9000" required /></label>
-            <label>Liquid savings (USD) <input name="liquid_savings_usd" type="number" value="30000" required /></label>
-            <label>Debt (USD) <input name="debt_usd" type="number" value="6000" required /></label>
-            <label>Expected side income (USD) <input name="expected_side_income_usd" type="number" value="800" required /></label>
-            <label>Other investments (USD) <input name="other_investments_usd" type="number" value="0" required /></label>
-            <label>Investment monthly income (USD) <input name="expected_investment_monthly_income_usd" type="number" value="0" required /></label>
+            <label>Monthly expenses (SGD) <input name="monthly_expenses_usd" type="number" placeholder="e.g. 4500" required /></label>
+            <label>Monthly income (SGD) <input name="monthly_income_usd" type="number" placeholder="e.g. 11000" required /></label>
+            <label>Liquid savings (SGD) <input name="liquid_savings_usd" type="number" placeholder="e.g. 40000" required /></label>
+            <label>Debt (SGD) <input name="debt_usd" type="number" placeholder="e.g. 8000" required /></label>
+            <label>Expected side income (SGD) <input name="expected_side_income_usd" type="number" placeholder="e.g. 1000" required /></label>
+            <label>Other investments (SGD) <input name="other_investments_usd" type="number" placeholder="e.g. 0" required /></label>
+            <label>Investment monthly income (SGD) <input name="expected_investment_monthly_income_usd" type="number" placeholder="e.g. 0" required /></label>
             <label>
               Insurance after quit
               <select name="health_insurance_if_quit">
-                <option value="true" selected>true</option>
+                <option value="" disabled selected>Select...</option>
+                <option value="true">true</option>
                 <option value="false">false</option>
               </select>
             </label>
@@ -91,23 +120,25 @@
 
           <h3>Family</h3>
           <div class="grid">
-            <label>Dependents count <input name="dependents_count" type="number" value="1" required /></label>
+            <label>Dependents count <input name="dependents_count" type="number" placeholder="e.g. 1" required /></label>
             <label>
               Partner income stable
               <select name="partner_income_stable">
-                <option value="true" selected>true</option>
+                <option value="" disabled selected>Select...</option>
+                <option value="true">true</option>
                 <option value="false">false</option>
               </select>
             </label>
             <label>
               Family support
               <select name="family_support_level">
+                <option value="" disabled selected>Select...</option>
                 <option value="low">low</option>
-                <option value="medium" selected>medium</option>
+                <option value="medium">medium</option>
                 <option value="high">high</option>
               </select>
             </label>
-            <label>Major events (comma) <input name="major_events_next_12_months" value="School fees" /></label>
+            <label>Major events (comma) <input name="major_events_next_12_months" placeholder="e.g. School fees, Wedding" /></label>
           </div>
 
           <button type="submit">Run Own-Agent Opinion</button>
@@ -122,6 +153,12 @@
           <label class="full">LinkedIn URLs (comma/newline)
             <textarea id="external_linkedin_urls" rows="4" placeholder="https://linkedin.com/in/boss-one
 https://linkedin.com/in/coworker-two"></textarea>
+            <div class="linkedin-url-suggestions">
+              <span class="suggestion-label">💡 Example profiles:</span>
+              <button type="button" class="suggestion-chip linkedin-url-chip" data-url="https://www.linkedin.com/in/clement-lork/">Clement Lork - Data Science</button>
+              <button type="button" class="suggestion-chip linkedin-url-chip" data-url="https://www.linkedin.com/in/charles-koh-86158a7/">Charles Koh</button>
+              <button type="button" class="suggestion-chip linkedin-url-chip" data-url="https://www.linkedin.com/in/zhonglin-chiam-055202101/">Zhonglin Chiam</button>
+            </div>
           </label>
         </div>
         <button id="run-sim-btn" type="button">Run Simulated Opinions</button>
@@ -132,10 +169,10 @@ https://linkedin.com/in/coworker-two"></textarea>
         <h2>Jobs + News Agents</h2>
         <p>Search available jobs and monitor news horizon for your field.</p>
         <div class="grid">
-          <label>Target role <input id="target_role" value="AI Product Consultant" /></label>
-          <label>Target location <input id="target_location" value="Singapore" /></label>
-          <label>News topic <input id="news_topic" value="AI product" /></label>
-          <label>Horizon (months) <input id="horizon_months" type="number" value="6" /></label>
+          <label>Target role <input id="target_role" placeholder="e.g. AI Product Consultant" /></label>
+          <label>Target location <input id="target_location" placeholder="e.g. Singapore" /></label>
+          <label>News topic <input id="news_topic" placeholder="e.g. AI product" /></label>
+          <label>Horizon (months) <input id="horizon_months" type="number" placeholder="e.g. 6" /></label>
         </div>
         <div class="connect-row">
           <button id="run-jobs-btn" type="button">Run Jobs Agent</button>

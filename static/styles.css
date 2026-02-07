@@ -230,6 +230,143 @@ button:hover {
   flex-wrap: wrap;
 }
 
+.linkedin-input-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.9rem;
+  margin-bottom: 0.9rem;
+  flex-wrap: wrap;
+}
+
+.linkedin-input-row label {
+  flex: 1;
+  min-width: 300px;
+}
+
+.name-bubble {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  background: linear-gradient(100deg, rgba(0, 211, 167, 0.15), rgba(138, 244, 220, 0.15));
+  border: 1px solid rgba(0, 211, 167, 0.4);
+  border-radius: 20px;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-family: "IBM Plex Mono", monospace;
+  white-space: nowrap;
+  animation: fadeInBubble 0.3s ease;
+}
+
+.name-bubble::before {
+  content: "👤 ";
+  margin-right: 0.3rem;
+}
+
+@keyframes fadeInBubble {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.panel h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.5rem;
+  color: var(--text);
+}
+
+.panel p {
+  margin-top: 0.3rem;
+  margin-bottom: 0.8rem;
+}
+
+.highlight-field input {
+  border: 2px solid var(--accent-2);
+  background: rgba(255, 179, 71, 0.05);
+}
+
+.highlight-field input::placeholder {
+  color: var(--accent-2);
+  opacity: 0.8;
+}
+
+input::placeholder,
+select option[disabled] {
+  color: var(--muted);
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.career-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(0, 211, 167, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(0, 211, 167, 0.15);
+  opacity: 0;
+  transition: opacity 0.4s ease-in-out;
+}
+
+.career-suggestions.hidden {
+  display: none;
+}
+
+.suggestion-label {
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 500;
+  margin-right: 0.5rem;
+}
+
+.suggestion-chip {
+  background: rgba(0, 211, 167, 0.1);
+  border: 1px solid rgba(0, 211, 167, 0.3);
+  color: var(--accent);
+  padding: 0.4rem 0.8rem;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 400;
+}
+
+.suggestion-chip:hover {
+  background: rgba(0, 211, 167, 0.2);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 211, 167, 0.2);
+}
+
+.suggestion-chip:active {
+  transform: translateY(0);
+}
+
+.linkedin-url-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: rgba(138, 244, 220, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(138, 244, 220, 0.15);
+}
+
+.linkedin-url-chip {
+  background: rgba(138, 244, 220, 0.1);
+  border: 1px solid rgba(138, 244, 220, 0.3);
+  color: #8af4dc;
+}
+
 .loading-text {
   font-family: "IBM Plex Mono", monospace;
   font-size: 0.8rem;
